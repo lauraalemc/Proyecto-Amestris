@@ -1,0 +1,103 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: amestris_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-laura123}
+      POSTGRES_DB: ${POSTGRES_DB:-alchemy}
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: amestris_redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: amestris-backend:latest
+    container_name: amestris_backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # dentro de la red Docker el host es "db"
+      DB_DSN: "host=db user=${POSTGRES_USER:-postgres} password=${POSTGRES_PASSWORD:-laura123} dbname=${POSTGRES_DB:-alchemy} port=5432 sslmode=disable TimeZone=America/Bogota"
+      PORT: "8080"
+      # 👇 OJO: entre comillas, para que la interpolación sea válida
+      JWT_SECRET: "${JWT_SECRET:-change_me_dev_secret}"
+      JWT_EXPIRES_HOURS: "12"
+      REDIS_ADDR: "redis:6379"
+    ports:
+      - "8080:8080"
+
+  worker:
+    image: amestris-backend:latest
+    container_name: amestris_worker
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      DB_DSN: "host=db user=${POSTGRES_USER:-postgres} password=${POSTGRES_PASSWORD:-laura123} dbname=${POSTGRES_DB:-alchemy} port=5432 sslmode=disable TimeZone=America/Bogota"
+      REDIS_ADDR: "redis:6379"
+
+      # ⚙️ Config de reintentos del worker
+      JOB_MAX_ATTEMPTS: "5"
+      JOB_BACKOFF_MS: "500"
+      JOB_BACKOFF_MAX_MS: "30000"
+      JOB_DLQ_ENABLED: "1"
+
+      # 🕒 Verificación periódica de misiones “viejas”
+      VERIFY_INTERVAL_SEC: "60"
+      MISSION_STALE_DAYS: "30"
+    command: ["/app/worker"]
+
+  frontend:
+    build:
+      context: ./frontend
+    image: amestris-frontend:latest
+    container_name: amestris_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: "http://localhost:8080"
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+
+  seed:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    entrypoint: ["/app/seed"]
+    depends_on:
+      - db
+    environment:
+      DB_DSN: "host=db user=postgres password=laura123 dbname=alchemy port=5432 sslmode=disable TimeZone=America/Bogota"
+
+volumes:
+  dbdata:
+  redis_data:

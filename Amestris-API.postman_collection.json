@@ -1,0 +1,70 @@
+{
+  "info": {
+    "name": "Amestris API",
+    "_postman_id": "f5d79b48-aaaa-bbbb-cccc-0000amestris",
+    "description": "Colección básica para probar Auth, Alchemists, Missions, Materials y Transmutations",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth - Register (SUPERVISOR)",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Content-Type","value":"application/json"}],
+        "url": "{{API_BASE}}/api/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Roy Mustang\",\"email\":\"roy@amestris.gov\",\"password\":\"fuego123\",\"role\":\"SUPERVISOR\"}"
+        }
+      }
+    },
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [{"key":"Content-Type","value":"application/json"}],
+        "url": "{{API_BASE}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"roy@amestris.gov\",\"password\":\"fuego123\"}"
+        }
+      }
+    },
+    {
+      "name": "Alchemists - List",
+      "request": { "method":"GET", "url":"{{API_BASE}}/api/v1/alchemists", "header":[{"key":"Authorization","value":"Bearer {{TOKEN}}"}] }
+    },
+    {
+      "name": "Alchemists - Create",
+      "request": {
+        "method": "POST",
+        "url": "{{API_BASE}}/api/v1/alchemists",
+        "header": [
+          {"key":"Content-Type","value":"application/json"},
+          {"key":"Authorization","value":"Bearer {{TOKEN}}"}
+        ],
+        "body": { "mode":"raw", "raw": "{\"name\":\"Maes Hughes\",\"rank\":\"State\",\"specialty\":\"Investigación\"}" }
+      }
+    },
+    {
+      "name": "Missions - List",
+      "request": { "method":"GET", "url":"{{API_BASE}}/api/v1/missions", "header":[{"key":"Authorization","value":"Bearer {{TOKEN}}"}] }
+    },
+    {
+      "name": "Materials - List",
+      "request": { "method":"GET", "url":"{{API_BASE}}/api/v1/materials", "header":[{"key":"Authorization","value":"Bearer {{TOKEN}}"}] }
+    },
+    {
+      "name": "Transmutations - List",
+      "request": { "method":"GET", "url":"{{API_BASE}}/api/v1/transmutations", "header":[{"key":"Authorization","value":"Bearer {{TOKEN}}"}] }
+    },
+    {
+      "name": "Health",
+      "request": { "method":"GET", "url":"{{API_BASE}}/api/health" }
+    }
+  ],
+  "variable": [
+    { "key": "API_BASE", "value": "http://localhost:8080" },
+    { "key": "TOKEN", "value": "" }
+  ]
+}

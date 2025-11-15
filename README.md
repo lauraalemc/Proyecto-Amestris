@@ -5,7 +5,7 @@ Amestris – Sistema de Gestión de Alquimia
 Aplicación Full-Stack para la administración de alquimistas, materiales, misiones y transmutaciones con registro en tiempo real (SSE).
 Incluye backend en Go, frontend en Next.js, autenticación JWT, Docker y documentación del API con Swagger y Postman.
 
-✍️ Autores
+Autores
 
 Daniel Arévalo
 Laura Melo
@@ -14,7 +14,7 @@ Universidad Jorge Tadeo Lozano
 Profesor: Felipe Esteban Hernández Baquero
 Curso: PROGRAMACIÓN AVANZADA (009069-1-2S-2025)
 
-🚀 1. Tecnologías utilizadas
+1. Tecnologías utilizadas
 Backend
 
 Go 1.21+
@@ -54,7 +54,7 @@ backend
 
 frontend
 
-📦 2. Estructura del repositorio
+2. Estructura del repositorio
 Proyecto-Amestris/
 │
 ├── backend/
@@ -150,12 +150,12 @@ Las migraciones se ejecutan automáticamente cuando se levanta el backend usando
 
 docker compose up --build
 
-🌐 4. Documentación del API
+4. Documentación del API
 Swagger (OpenAPI)
 
 Accesible al ejecutar el backend:
 
-👉 http://localhost:8080/api/docs
+http://localhost:8080/api/docs
 
 Colección Postman incluida
 
@@ -180,7 +180,7 @@ Auditorías
 
 Eventos SSE
 
-🐳 5. Despliegue con Docker
+5. Despliegue con Docker
 Requisitos
 
 Docker Desktop
@@ -200,12 +200,12 @@ PostgreSQL	5432	Base de datos
 Accesos importantes:
 
 Frontend:
-👉 http://localhost:3000
+http://localhost:3000
 
 Swagger Backend:
-👉 http://localhost:8080/api/docs
+http://localhost:8080/api/docs
 
-👥 6. Usuarios de prueba
+6. Usuarios de prueba
 Supervisor
 email: roy@amestris.gov
 password: fuego123
@@ -216,7 +216,7 @@ email: riza@amestris.gov
 password: halcon123
 rol: ALCHEMIST
 
-🖥️ 7. Funcionalidad por roles
+7. Funcionalidad por roles
 Supervisor
 
 Panel con estadísticas
@@ -245,7 +245,7 @@ Consulta de historial propio
 
 Sin permisos administrativos
 
-🔔 8. Funciones destacadas
+8. Funciones destacadas
 
 Autenticación JWT
 
@@ -261,7 +261,7 @@ UI moderna y responsiva
 
 Validaciones en backend y frontend
 
-🧪 9. Ejecución del backend sin Docker
+9. Ejecución del backend sin Docker
 cd backend
 go mod tidy
 go run ./cmd/api
@@ -275,7 +275,7 @@ Postman
 
 cURL
 
-📘 10. Cómo extender o mejorar
+10. Cómo extender o mejorar
 
 Agregar filtros avanzados en dashboard
 
@@ -289,6 +289,6 @@ Modo oscuro en frontend
 
 Roles adicionales (Administrador Maestro)
 
-📝 11. Licencia
+11. Licencia
 
 Uso académico – Universidad Jorge Tadeo Lozano.

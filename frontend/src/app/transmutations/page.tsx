@@ -29,8 +29,19 @@ type ListResponse = {
   total?: number;
 };
 
+// 🔹 Formato amigable para la fecha
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString("es-CO", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
 export default function TransmutationsPage() {
   const { user } = useAuth();
+  const isSupervisor = user?.role === "SUPERVISOR";
   const { success, error: toastError, info } = useToast();
 
   const [items, setItems] = useState<Transmutation[]>([]);
@@ -58,7 +69,11 @@ export default function TransmutationsPage() {
 
   function handleAuthError(e: any) {
     const msg = String(e?.message || "").toLowerCase();
-    if (msg.includes("unauthorized") || msg.includes("no autentic") || msg.includes("token")) {
+    if (
+      msg.includes("unauthorized") ||
+      msg.includes("no autentic") ||
+      msg.includes("token")
+    ) {
       Token.clear();
       if (typeof window !== "undefined") {
         window.location.href = "/login";
@@ -68,22 +83,31 @@ export default function TransmutationsPage() {
     return false;
   }
 
-  // Carga inicial (con defensas para evitar .map sobre algo que no sea array)
+  // Carga inicial
   async function load() {
     setLoading(true);
     setLoadErr(null);
     try {
       // Lista de transmutaciones (paginada)
-      const listRes = await apiGet<ListResponse>("/api/transmutations?page=1&pageSize=20");
+      const listRes = await apiGet<ListResponse>(
+        "/api/transmutations?page=1&pageSize=20"
+      );
       const safeItems = Array.isArray(listRes?.items) ? listRes.items : [];
       setItems(safeItems);
 
-      // Materials: tu endpoint devuelve un array simple
-      const mats = await apiGet<any>("/api/materials");
-      const safeMats: any[] = Array.isArray(mats) ? mats : [];
+      // Materials: soportar tanto array simple como respuesta paginada
+      const mats = await apiGet<any>("/api/v1/materials");
+      let safeMats: any[] = [];
+
+      if (Array.isArray(mats)) {
+        safeMats = mats;
+      } else if (mats && Array.isArray(mats.items)) {
+        safeMats = mats.items;
+      }
+
       setMaterials(safeMats.map((m) => ({ id: m.id, name: m.name })));
 
-      // Missions: también array simple
+      // Missions
       const miss = await apiGet<any>("/api/missions");
       const safeMiss: any[] = Array.isArray(miss) ? miss : [];
       setMissions(safeMiss.map((mi) => ({ id: mi.id, title: mi.title })));
@@ -138,7 +162,7 @@ export default function TransmutationsPage() {
     }
   }
 
-  // Eliminar transmutación manualmente
+  // Eliminar transmutación manualmente (solo habrá botón para supervisor)
   async function handleDelete(id: number) {
     if (!confirm("¿Eliminar transmutación? Esto restaurará el stock del material.")) return;
     try {
@@ -194,7 +218,9 @@ export default function TransmutationsPage() {
           <div>
             <h1 className="text-2xl font-bold">Transmutations</h1>
             <p className="text-sm text-neutral-500">
-              Registro de transmutaciones y consumo de materiales en tiempo real.
+              {isSupervisor
+                ? "Registro de transmutaciones y consumo de materiales en tiempo real. Como supervisor puedes revisar los registros y, si es necesario, eliminarlos."
+                : "Registro de transmutaciones y consumo de materiales en tiempo real. Como alquimista puedes registrar nuevas transmutaciones usando los materiales disponibles."}
             </p>
           </div>
           {user && (
@@ -280,65 +306,263 @@ export default function TransmutationsPage() {
           )}
         </section>
 
-        {/* Lista */}
+        {/* Lista / Tabla */}
         <section>
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-semibold text-sm text-neutral-800">
               Últimas transmutaciones
             </h2>
-            {loading && (
-              <span className="text-xs text-neutral-500">Cargando…</span>
-            )}
-            {loadErr && (
-              <span className="text-xs text-red-600">✖ {loadErr}</span>
-            )}
+            <div className="flex gap-3 items-center">
+              {loading && (
+                <span className="text-xs text-neutral-500">Cargando…</span>
+              )}
+              {loadErr && (
+                <span className="text-xs text-red-600">✖ {loadErr}</span>
+              )}
+            </div>
           </div>
 
-          <ul className="space-y-2">
-            {items.map((t) => (
-              <li
-                key={t.id}
-                className="border rounded-md px-3 py-2 text-sm bg-white flex items-start justify-between gap-4"
+          {items.length === 0 && !loading ? (
+            <p className="text-xs text-neutral-500">
+              No hay transmutaciones registradas aún.
+            </p>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table
+                style={{
+                  borderCollapse: "collapse",
+                  width: "100%",
+                  minWidth: "760px",
+                  backgroundColor: "white",
+                }}
               >
-                <div>
-                  <div className="font-medium">
-                    #{t.id} — {t.title}{" "}
-                    <span className="text-xs text-neutral-500">
-                      ({t.createdAt})
-                    </span>
-                  </div>
-                  <div className="text-xs text-neutral-600">
-                    Material:{" "}
-                    <strong>{t.materialName || `#${t.materialId}`}</strong> ·
-                    Cantidad usada: {t.quantityUsed}
-                    {t.missionTitle && (
-                      <>
-                        {" "}
-                        · Misión: <em>{t.missionTitle}</em>
-                      </>
+                <thead>
+                  <tr style={{ display: "table-row" }}>
+                    <th
+                      style={{
+                        display: "table-cell",
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "left",
+                        backgroundColor: "#f5f5f5",
+                        fontWeight: 600,
+                        fontSize: "12px",
+                      }}
+                    >
+                      ID
+                    </th>
+                    <th
+                      style={{
+                        display: "table-cell",
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "left",
+                        backgroundColor: "#f5f5f5",
+                        fontWeight: 600,
+                        fontSize: "12px",
+                      }}
+                    >
+                      Título
+                    </th>
+                    <th
+                      style={{
+                        display: "table-cell",
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "left",
+                        backgroundColor: "#f5f5f5",
+                        fontWeight: 600,
+                        fontSize: "12px",
+                      }}
+                    >
+                      Material
+                    </th>
+                    <th
+                      style={{
+                        display: "table-cell",
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "left",
+                        backgroundColor: "#f5f5f5",
+                        fontWeight: 600,
+                        fontSize: "12px",
+                      }}
+                    >
+                      Cantidad usada
+                    </th>
+                    <th
+                      style={{
+                        display: "table-cell",
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "left",
+                        backgroundColor: "#f5f5f5",
+                        fontWeight: 600,
+                        fontSize: "12px",
+                      }}
+                    >
+                      Misión
+                    </th>
+                    <th
+                      style={{
+                        display: "table-cell",
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "left",
+                        backgroundColor: "#f5f5f5",
+                        fontWeight: 600,
+                        fontSize: "12px",
+                      }}
+                    >
+                      Resultado
+                    </th>
+                    <th
+                      style={{
+                        display: "table-cell",
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "left",
+                        backgroundColor: "#f5f5f5",
+                        fontWeight: 600,
+                        fontSize: "12px",
+                      }}
+                    >
+                      Fecha
+                    </th>
+                    {isSupervisor && (
+                      <th
+                        style={{
+                          display: "table-cell",
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          textAlign: "right",
+                          backgroundColor: "#f5f5f5",
+                          fontWeight: 600,
+                          fontSize: "12px",
+                        }}
+                      >
+                        Acciones
+                      </th>
                     )}
-                    {t.result && (
-                      <>
-                        {" "}
-                        · Resultado: <span>{t.result}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleDelete(t.id)}
-                  className="bg-red-600 text-white rounded px-3 py-1 text-xs"
-                >
-                  Eliminar
-                </button>
-              </li>
-            ))}
-            {items.length === 0 && !loading && (
-              <li className="text-xs text-neutral-500">
-                No hay transmutaciones registradas aún.
-              </li>
-            )}
-          </ul>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {items.map((t) => (
+                    <tr key={t.id} style={{ display: "table-row" }}>
+                      <td
+                        style={{
+                          display: "table-cell",
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          fontSize: "12px",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        #{t.id}
+                      </td>
+                      <td
+                        style={{
+                          display: "table-cell",
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          fontSize: "12px",
+                          verticalAlign: "middle",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {t.title}
+                      </td>
+                      <td
+                        style={{
+                          display: "table-cell",
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          fontSize: "12px",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: "inline-block",
+                            padding: "2px 8px",
+                            borderRadius: "999px",
+                            backgroundColor: "#eef2ff",
+                            color: "#3730a3",
+                            fontSize: "11px",
+                          }}
+                        >
+                          {t.materialName || `#${t.materialId}`}
+                        </span>
+                      </td>
+                      <td
+                        style={{
+                          display: "table-cell",
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          fontSize: "12px",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {t.quantityUsed}
+                      </td>
+                      <td
+                        style={{
+                          display: "table-cell",
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          fontSize: "12px",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {t.missionTitle || "—"}
+                      </td>
+                      <td
+                        style={{
+                          display: "table-cell",
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          fontSize: "12px",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {t.result || "—"}
+                      </td>
+                      <td
+                        style={{
+                          display: "table-cell",
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          fontSize: "12px",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {formatDate(t.createdAt)}
+                      </td>
+                      {isSupervisor && (
+                        <td
+                          style={{
+                            display: "table-cell",
+                            border: "1px solid #ddd",
+                            padding: "8px",
+                            textAlign: "right",
+                            verticalAlign: "middle",
+                          }}
+                        >
+                          <button
+                            onClick={() => handleDelete(t.id)}
+                            className="bg-red-600 text-white rounded px-3 py-1 text-xs"
+                          >
+                            Eliminar
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       </main>
     </AuthGate>

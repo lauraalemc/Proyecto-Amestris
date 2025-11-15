@@ -86,6 +86,56 @@ function BarChart({ title, data }: { title: string; data: BarDatum[] }) {
   );
 }
 
+/* ===== Helpers para estado de misión (badge) ===== */
+
+function statusLabel(status: string): string {
+  if (status === "PENDING") return "Pending";
+  if (status === "IN_PROGRESS") return "In progress";
+  if (status === "DONE") return "Done";
+  return status;
+}
+
+function statusBadgeStyle(status: string) {
+  const base = {
+    display: "inline-block",
+    padding: "2px 8px",
+    borderRadius: "999px",
+    fontSize: "0.7rem",
+    fontWeight: 600,
+  } as React.CSSProperties;
+
+  if (status === "PENDING") {
+    return {
+      ...base,
+      backgroundColor: "#fef3c7",
+      color: "#92400e",
+    };
+  }
+
+  if (status === "IN_PROGRESS") {
+    return {
+      ...base,
+      backgroundColor: "#dbeafe",
+      color: "#1d4ed8",
+    };
+  }
+
+  if (status === "DONE") {
+    return {
+      ...base,
+      backgroundColor: "#dcfce7",
+      color: "#166534",
+    };
+  }
+
+  // estado desconocido
+  return {
+    ...base,
+    backgroundColor: "#e5e7eb",
+    color: "#374151",
+  };
+}
+
 /* =================== PÁGINA PRINCIPAL =================== */
 
 export default function Home() {
@@ -396,7 +446,12 @@ export default function Home() {
                   {openMissions.map((m) => (
                     <li key={m.id}>
                       #{m.id} — <strong>{m.title}</strong>{" "}
-                      <span className="badge">{m.status}</span>
+                      <span
+                        className="badge"
+                        style={statusBadgeStyle(m.status)}
+                      >
+                        {statusLabel(m.status)}
+                      </span>
                     </li>
                   ))}
                 </ul>

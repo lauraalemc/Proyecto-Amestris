@@ -8,21 +8,45 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthProvider";
 import { useToast } from "@/context/ToastProvider";
 
+type AlchemistRank =
+  | "APPRENTICE"
+  | "JOURNEYMAN"
+  | "MASTER"
+  | "STATE_ALCHEMIST"
+  | "SENIOR_STATE_ALCHEMIST"
+  | "CHIEF_ALCHEMIST";
+
 type Alchemist = {
   id: number;
   name: string;
-  rank: "APPRENTICE" | "JOURNEYMAN" | "MASTER";
+  rank: AlchemistRank;
   specialty?: string | null;
 };
 
 type CreateIn = {
   name: string;
-  rank: Alchemist["rank"];
+  rank: AlchemistRank;
   specialty?: string;
 };
 type UpdateIn = Partial<CreateIn>;
 
-const RANKS: Alchemist["rank"][] = ["APPRENTICE", "JOURNEYMAN", "MASTER"];
+const RANKS: AlchemistRank[] = [
+  "APPRENTICE",
+  "JOURNEYMAN",
+  "MASTER",
+  "STATE_ALCHEMIST",
+  "SENIOR_STATE_ALCHEMIST",
+  "CHIEF_ALCHEMIST",
+];
+
+const RANK_LABEL: Record<AlchemistRank, string> = {
+  APPRENTICE: "Apprentice",
+  JOURNEYMAN: "Journeyman",
+  MASTER: "Master",
+  STATE_ALCHEMIST: "State Alchemist",
+  SENIOR_STATE_ALCHEMIST: "Senior State Alchemist",
+  CHIEF_ALCHEMIST: "Chief Alchemist",
+};
 
 export default function AlchemistsPage() {
   const router = useRouter();
@@ -51,7 +75,11 @@ export default function AlchemistsPage() {
   // ——— Manejo central de 401 / token inválido
   function handleAuthError(e: any) {
     const msg = String(e?.message || "").toLowerCase();
-    if (msg.includes("unauthorized") || msg.includes("no autentic") || msg.includes("token")) {
+    if (
+      msg.includes("unauthorized") ||
+      msg.includes("no autentic") ||
+      msg.includes("token")
+    ) {
       Token.clear();
       router.replace("/login");
       return true;
@@ -63,7 +91,6 @@ export default function AlchemistsPage() {
     setLoading(true);
     setLoadErr(null);
     try {
-      // usa /api/* (protegido); api.ts añade Bearer
       const list = await apiGet<Alchemist[]>("/api/alchemists");
       setItems(list || []);
     } catch (e: any) {
@@ -153,119 +180,362 @@ export default function AlchemistsPage() {
 
   return (
     <AuthGate>
-      <main className="max-w-3xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-4">Alchemists</h1>
+      <main className="max-w-4xl mx-auto p-6">
+        <h1 className="text-2xl font-bold mb-6">Alchemists</h1>
 
         {isSupervisor && (
-          <form onSubmit={handleCreate} className="grid grid-cols-6 gap-2 p-3 rounded border mb-6">
-            <input
-              className="col-span-3 border rounded px-2 py-1"
-              placeholder="Nombre *"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-            {form.name.trim() === "" && (
-              <p className="col-span-6 text-xs text-red-600">Requerido: nombre</p>
+          <form
+            onSubmit={handleCreate}
+            className="space-y-4 p-4 rounded-xl border bg-white shadow-sm mb-8"
+          >
+            {/* Nombre */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Nombre *
+              </label>
+              <input
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Ej. Edward Elric"
+                value={form.name}
+                onChange={(e) =>
+                  setForm({ ...form, name: e.target.value })
+                }
+              />
+              {form.name.trim() === "" && (
+                <p className="mt-1 text-xs text-red-600">
+                  Requerido: nombre
+                </p>
+              )}
+            </div>
+
+            {/* Rango + Especialidad en 2 columnas (en pantallas grandes) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Rango
+                </label>
+                <select
+                  className="w-full border rounded-lg px-3 py-2 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={form.rank}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      rank: e.target.value as AlchemistRank,
+                    })
+                  }
+                >
+                  {RANKS.map((r) => (
+                    <option key={r} value={r}>
+                      {RANK_LABEL[r]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Especialidad
+                </label>
+                <input
+                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="Ej. Alquimia de metal"
+                  value={form.specialty ?? ""}
+                  onChange={(e) =>
+                    setForm({ ...form, specialty: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+
+            {formErr && (
+              <p className="text-sm text-red-600">✖ {formErr}</p>
             )}
 
-            <select
-              className="col-span-2 border rounded px-2 py-1"
-              value={form.rank}
-              onChange={(e) => setForm({ ...form, rank: e.target.value as Alchemist["rank"] })}
-            >
-              {RANKS.map((r) => (
-                <option key={r} value={r}>
-                  {r.charAt(0) + r.slice(1).toLowerCase()}
-                </option>
-              ))}
-            </select>
-
-            <input
-              className="col-span-6 border rounded px-2 py-1"
-              placeholder="Especialidad"
-              value={form.specialty ?? ""}
-              onChange={(e) => setForm({ ...form, specialty: e.target.value })}
-            />
-
-            {formErr && <p className="col-span-6 text-sm text-red-600">✖ {formErr}</p>}
-            <button
-              disabled={!canCreate || submitting}
-              className="col-span-2 bg-indigo-600 text-white rounded py-1 disabled:opacity-50"
-            >
-              {submitting ? "Guardando..." : "Guardar"}
-            </button>
+            {/* Botón en una fila aparte, alineado a la derecha */}
+            <div className="flex justify-end">
+              <button
+                disabled={!canCreate || submitting}
+                className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting ? "Guardando..." : "Guardar"}
+              </button>
+            </div>
           </form>
         )}
 
         {loading && <p>Cargando...</p>}
         {loadErr && <p className="text-red-500">✖ {loadErr}</p>}
 
-        <ul className="space-y-3">
-          {items.map((a) => (
-            <li key={a.id} className="p-3 border rounded">
-              {editingId === a.id ? (
-                <div className="grid grid-cols-6 gap-2">
-                  <input
-                    className="col-span-3 border rounded px-2 py-1"
-                    value={edit.name ?? ""}
-                    onChange={(e) => setEdit({ ...edit, name: e.target.value })}
-                  />
-                  <select
-                    className="col-span-2 border rounded px-2 py-1"
-                    value={edit.rank ?? "APPRENTICE"}
-                    onChange={(e) => setEdit({ ...edit, rank: e.target.value as Alchemist["rank"] })}
-                  >
-                    {RANKS.map((r) => (
-                      <option key={r} value={r}>
-                        {r.charAt(0) + r.slice(1).toLowerCase()}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    className="col-span-6 border rounded px-2 py-1"
-                    value={edit.specialty ?? ""}
-                    onChange={(e) => setEdit({ ...edit, specialty: e.target.value })}
-                  />
+        <section className="mt-8">
+          <h2 className="text-lg font-semibold mb-3">Alquimistas registrados</h2>
 
-                  {isSupervisor && (
-                    <div className="col-span-6 flex gap-2">
-                      <button
-                        onClick={() => saveEdit(a.id)}
-                        className="bg-green-600 text-white rounded px-3 py-1 disabled:opacity-50"
-                        disabled={savingEdit}
+          {items.length === 0 ? (
+            <p className="text-sm text-neutral-500">
+              No hay alquimistas registrados todavía.
+            </p>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table
+                style={{
+                  borderCollapse: "collapse",
+                  width: "100%",
+                  minWidth: "500px",
+                }}
+              >
+                <thead>
+                  <tr>
+                    <th
+                      style={{
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "left",
+                        backgroundColor: "#f5f5f5",
+                      }}
+                    >
+                      ID
+                    </th>
+                    <th
+                      style={{
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "left",
+                        backgroundColor: "#f5f5f5",
+                      }}
+                    >
+                      Nombre
+                    </th>
+                    <th
+                      style={{
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "left",
+                        backgroundColor: "#f5f5f5",
+                      }}
+                    >
+                      Rango
+                    </th>
+                    <th
+                      style={{
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "left",
+                        backgroundColor: "#f5f5f5",
+                      }}
+                    >
+                      Especialidad
+                    </th>
+                    {isSupervisor && (
+                      <th
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          textAlign: "right",
+                          backgroundColor: "#f5f5f5",
+                        }}
                       >
-                        {savingEdit ? "Guardando..." : "Guardar"}
-                      </button>
-                      <button onClick={cancelEdit} className="border rounded px-3 py-1" disabled={savingEdit}>
-                        Cancelar
-                      </button>
-                    </div>
+                        Acciones
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {items.map((a) =>
+                    editingId === a.id ? (
+                      <tr key={a.id}>
+                        {/* ID */}
+                        <td
+                          style={{
+                            border: "1px solid #ddd",
+                            padding: "8px",
+                            verticalAlign: "middle",
+                          }}
+                        >
+                          #{a.id}
+                        </td>
+
+                        {/* Nombre (editable) */}
+                        <td
+                          style={{
+                            border: "1px solid #ddd",
+                            padding: "8px",
+                          }}
+                        >
+                          <input
+                            style={{ width: "100%", padding: "4px" }}
+                            value={edit.name ?? ""}
+                            onChange={(e) =>
+                              setEdit({ ...edit, name: e.target.value })
+                            }
+                          />
+                        </td>
+
+                        {/* Rango (editable) */}
+                        <td
+                          style={{
+                            border: "1px solid #ddd",
+                            padding: "8px",
+                          }}
+                        >
+                          <select
+                            style={{ width: "100%", padding: "4px" }}
+                            value={edit.rank ?? "APPRENTICE"}
+                            onChange={(e) =>
+                              setEdit({
+                                ...edit,
+                                rank: e.target.value as AlchemistRank,
+                              })
+                            }
+                          >
+                            {RANKS.map((r) => (
+                              <option key={r} value={r}>
+                                {RANK_LABEL[r]}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+
+                        {/* Especialidad (editable) */}
+                        <td
+                          style={{
+                            border: "1px solid #ddd",
+                            padding: "8px",
+                          }}
+                        >
+                          <input
+                            style={{ width: "100%", padding: "4px" }}
+                            value={edit.specialty ?? ""}
+                            onChange={(e) =>
+                              setEdit({
+                                ...edit,
+                                specialty: e.target.value,
+                              })
+                            }
+                          />
+                        </td>
+
+                        {/* Acciones (guardar / cancelar) */}
+                        {isSupervisor && (
+                          <td
+                            style={{
+                              border: "1px solid #ddd",
+                              padding: "8px",
+                              textAlign: "right",
+                            }}
+                          >
+                            <button
+                              onClick={() => saveEdit(a.id)}
+                              disabled={savingEdit}
+                              style={{
+                                marginRight: "8px",
+                                padding: "4px 10px",
+                                backgroundColor: "#16a34a",
+                                color: "white",
+                                borderRadius: "4px",
+                                border: "none",
+                                fontSize: "12px",
+                                opacity: savingEdit ? 0.7 : 1,
+                              }}
+                            >
+                              {savingEdit ? "Guardando..." : "Guardar"}
+                            </button>
+                            <button
+                              onClick={cancelEdit}
+                              disabled={savingEdit}
+                              style={{
+                                padding: "4px 10px",
+                                borderRadius: "4px",
+                                border: "1px solid #ccc",
+                                fontSize: "12px",
+                              }}
+                            >
+                              Cancelar
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ) : (
+                      <tr key={a.id}>
+                        <td
+                          style={{
+                            border: "1px solid #ddd",
+                            padding: "8px",
+                            verticalAlign: "middle",
+                          }}
+                        >
+                          #{a.id}
+                        </td>
+                        <td
+                          style={{
+                            border: "1px solid #ddd",
+                            padding: "8px",
+                            verticalAlign: "middle",
+                          }}
+                        >
+                          {a.name}
+                        </td>
+                        <td
+                          style={{
+                            border: "1px solid #ddd",
+                            padding: "8px",
+                            verticalAlign: "middle",
+                          }}
+                        >
+                          {RANK_LABEL[a.rank]}
+                        </td>
+                        <td
+                          style={{
+                            border: "1px solid #ddd",
+                            padding: "8px",
+                            verticalAlign: "middle",
+                          }}
+                        >
+                          {a.specialty || "—"}
+                        </td>
+                        {isSupervisor && (
+                          <td
+                            style={{
+                              border: "1px solid #ddd",
+                              padding: "8px",
+                              textAlign: "right",
+                              verticalAlign: "middle",
+                            }}
+                          >
+                            <button
+                              onClick={() => startEdit(a)}
+                              style={{
+                                marginRight: "8px",
+                                padding: "4px 10px",
+                                borderRadius: "4px",
+                                border: "1px solid #ccc",
+                                fontSize: "12px",
+                              }}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => remove(a.id)}
+                              style={{
+                                padding: "4px 10px",
+                                backgroundColor: "#dc2626",
+                                color: "white",
+                                borderRadius: "4px",
+                                border: "none",
+                                fontSize: "12px",
+                              }}
+                            >
+                              Eliminar
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    )
                   )}
-                </div>
-              ) : (
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="font-medium">
-                      #{a.id} — <strong>{a.name}</strong>{" "}
-                      <span className="text-sm text-neutral-500">({a.rank})</span>
-                    </div>
-                    <div className="text-sm text-neutral-600">{a.specialty ?? ""}</div>
-                  </div>
-                  {isSupervisor && (
-                    <div className="flex gap-2 shrink-0">
-                      <button onClick={() => startEdit(a)} className="border rounded px-3 py-1">
-                        Editar
-                      </button>
-                      <button onClick={() => remove(a.id)} className="bg-red-600 text-white rounded px-3 py-1">
-                        Eliminar
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </main>
     </AuthGate>
   );

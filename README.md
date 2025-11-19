@@ -211,7 +211,7 @@ Supervisor
 
 email: roy@amestris.gov
 
-password: fuego123
+password: roy123
 
 rol: SUPERVISOR
 
@@ -219,7 +219,7 @@ Alquimista
 
 email: riza@amestris.gov
 
-password: halcon123
+password: riza123
 
 rol: ALCHEMIST
 

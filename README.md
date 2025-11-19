@@ -1,4 +1,4 @@
-# Proyecto Amestris Full-Stack
+Proyecto Amestris Full-Stack
 
 Amestris – Sistema de Gestión de Alquimia
 
@@ -6,7 +6,6 @@ Aplicación Full-Stack para la administración de alquimistas, materiales, misio
 Incluye backend en Go, frontend en Next.js, autenticación JWT, Docker y documentación del API con Swagger y Postman.
 
 Autores
-
 Daniel Arévalo
 Laura Melo
 
@@ -23,7 +22,7 @@ Fiber (Framework web)
 
 PostgreSQL
 
-SQL/Migrations
+SQL Migrations
 
 Swagger (OpenAPI)
 
@@ -46,6 +45,7 @@ RealtimeBridge para SSE
 Infraestructura
 
 Docker & Docker Compose
+
 Contenedores:
 
 postgres
@@ -54,119 +54,181 @@ backend
 
 frontend
 
+redis
+
+worker
+
+seed (script de inicialización automático)
+
 2. Estructura del repositorio
 Proyecto-Amestris/
 │
 ├── backend/
 │   ├── cmd/
-│   ├── internal/
-│   ├── migrations/
-│   ├── seed.sql                 # Script con datos de ejemplo
-│   ├── swagger/
+│   │   ├── api/          # Servidor principal
+│   │   └── seed/         # Servicio de seed (Go) → inicializa datos reales
+│   ├── internal/         # Lógica interna (auth, modelos, handlers)
+│   ├── migrations/       # Migraciones SQL
+│   ├── swagger/          # Documentación OpenAPI
 │   └── go.mod / go.sum
 │
 ├── frontend/
-│   ├── src/app/
+│   ├── src/app/          # Rutas del proyecto (App Router)
 │   ├── src/components/
 │   ├── src/context/
 │   └── ...
 │
 ├── docker-compose.yml
-├── openapi.yaml                 # Documentación del API
+├── openapi.yaml
 ├── Amestris-API.postman_collection.json
 └── README.md
 
 3. Base de datos y migraciones
 
-La estructura de la base de datos se define mediante migraciones en la carpeta:
+Las migraciones están en:
 
-```bash
-backend/migrations
-Actualmente se incluyen:
+backend/migrations/
+
+
+Incluye:
 
 0001_init.sql
-Esta migración crea las tablas principales del sistema:
+
+Crea las tablas principales:
 
 users
 
-Campos: id, name, email, password_hash, role, created_at, updated_at
-
-Almacena los usuarios de la aplicación (supervisores y alquimistas).
-
-El campo email es único.
-
 materials
-
-Campos: id, name, stock, created_at, updated_at
-
-Representa los materiales disponibles en el sistema y su stock actual.
 
 missions
 
-Campos: id, title, description, status, assigned_to, created_at, updated_at
-
-Tabla de misiones, con un estado (status) y un usuario asignado (assigned_to → users.id).
-
 transmutations
-
-Campos: id, mission_id, requested_by, status, cost, result, created_at, updated_at
-
-Registra transmutaciones asociadas opcionalmente a una misión (mission_id) y a un usuario solicitante (requested_by), con estado y resultado en formato JSON.
 
 audits
 
-Campos: id, entity, entity_id, action, actor_id, metadata, created_at
-
-Tabla de auditoría para registrar acciones relevantes realizadas en el sistema.
-
-También se crean índices para optimizar consultas frecuentes:
-
-idx_users_email sobre users(email)
-
-idx_missions_status sobre missions(status)
-
-idx_transmutations_status sobre transmutations(status)
-
-idx_audits_entity sobre audits(entity, entity_id)
+Incluye índices optimizados para búsqueda por email, estado, etc.
 
 0002_refresh_tokens.sql
-Esta migración crea la tabla de tokens de refresco para autenticación:
 
-refresh_tokens
+Crea la tabla:
 
-Campos: id, user_id, token_hash, jti, expires_at, revoked_at, created_at
+refresh_tokens (tokens de refresco para JWT)
 
-Relacionada con users(id) mediante user_id con ON DELETE CASCADE.
+Ejecutar migraciones
 
-Incluye índices:
-
-idx_refresh_user sobre refresh_tokens(user_id)
-
-ux_refresh_jti (único) sobre refresh_tokens(jti)
-
-Ejecución de las migraciones
-
-Las migraciones se ejecutan automáticamente cuando se levanta el backend usando Docker Compose:
+Se aplican automáticamente al ejecutar:
 
 docker compose up --build
 
-4. Documentación del API
+4. Seed (Datos de ejemplo)
+
+Este proyecto no utiliza un seed.sql, sino un servicio independiente en Go ubicado en:
+
+backend/cmd/seed/
+
+
+Este servicio:
+
+Se conecta automáticamente a PostgreSQL.
+
+Crea/actualiza:
+
+Usuarios de prueba
+
+Materiales iniciales
+
+Misiones de ejemplo
+
+Muestra logs como:
+
+🌱 Seed: iniciando…
+📦 Material actualizado: Mercurio refinado
+🗂️ Misión actualizada: Inspección en Central City
+🌿 Seed: terminado.
+
+
+El contenedor seed se ejecuta solo una vez y luego sale con éxito (exit 0).
+
+Esto cumple con el requisito:
+
+“Script de inicialización de la base de datos con datos de ejemplo.”
+
+5. Documentación del API
 Swagger (OpenAPI)
 
-Accesible al ejecutar el backend:
+Accesible en:
 
 http://localhost:8080/api/docs
 
-Colección Postman incluida
+Postman
 
-Archivo:
+Incluye la colección:
 
 Amestris-API.postman_collection.json
 
 
-Incluye pruebas completas de:
+Contiene pruebas para:
 
 Autenticación
+
+Misiones
+
+Materiales
+
+Transmutaciones
+
+SSE
+
+Auditorías
+
+6. Despliegue con Docker
+Requisitos
+
+Docker Desktop
+
+Docker Compose
+
+Levantar todo el sistema
+docker compose up --build
+
+Servicios disponibles
+Servicio	Puerto	Descripción
+Backend	8080	API + Swagger
+Frontend	3000	Aplicación web
+PostgreSQL	5432	Base de datos
+Redis	6379	Cache/Queue
+Worker	—	Procesa eventos
+Seed	—	Inicializa datos
+
+Accesos importantes:
+
+Frontend: http://localhost:3000
+
+API/Swagger: http://localhost:8080/api/docs
+
+7. Usuarios de prueba
+Supervisor
+
+email: roy@amestris.gov
+
+password: fuego123
+
+rol: SUPERVISOR
+
+Alquimista
+
+email: riza@amestris.gov
+
+password: halcon123
+
+rol: ALCHEMIST
+
+8. Funcionalidad por roles
+Supervisor
+
+Acceso total al sistema
+
+CRUD completo de:
 
 Alquimistas
 
@@ -176,119 +238,55 @@ Materiales
 
 Transmutaciones
 
-Auditorías
-
-Eventos SSE
-
-5. Despliegue con Docker
-Requisitos
-
-Docker Desktop
-
-Docker Compose
-
-Levantar toda la aplicación
-docker compose up --build
-
-
-Servicios disponibles:
-
-Servicio	Puerto	Descripción
-Backend	8080	API + Swagger
-Frontend	3000	Aplicación web
-PostgreSQL	5432	Base de datos
-Accesos importantes:
-
-Frontend:
-http://localhost:3000
-
-Swagger Backend:
-http://localhost:8080/api/docs
-
-6. Usuarios de prueba
-Supervisor
-email: roy@amestris.gov
-password: fuego123
-rol: SUPERVISOR
-
-Alquimista
-email: riza@amestris.gov
-password: halcon123
-rol: ALCHEMIST
-
-7. Funcionalidad por roles
-Supervisor
+Auditorías en tiempo real
 
 Panel con estadísticas
 
-Gestión completa de:
-
-Alquimistas
-
-Materiales
-
-Misiones (CRUD)
-
-Transmutaciones
-
-Auditorías
-
-Historial y acciones visibles
-
 Alquimista
 
-Panel con misiones asignadas
+Ver misiones asignadas
 
-Registro de transmutaciones
+Registrar transmutaciones
 
-Consulta de historial propio
+Ver historial propio
 
-Sin permisos administrativos
+Sin acceso administrativo
 
-8. Funciones destacadas
+9. Funciones destacadas
 
-Autenticación JWT
+Autenticación JWT con refresh tokens
 
-Manejo de roles (RBAC)
+Control de permisos por rol (RBAC)
 
-SSE para actualizaciones en tiempo real
+Auditoría integrada
 
-Control de stock automático
+SSE para actualizaciones automáticas
 
-Auditoría integrada del sistema
+Control de stock de materiales
 
-UI moderna y responsiva
+UI responsiva con Tailwind
 
-Validaciones en backend y frontend
+Normalización de datos en frontend
 
-9. Ejecución del backend sin Docker
+Manejo avanzado de estados y errores
+
+10. Ejecución del backend sin Docker
 cd backend
 go mod tidy
 go run ./cmd/api
 
+11. Mejoras futuras
 
-Puedes probar la API con:
+WebSockets en lugar de SSE
 
-Swagger
+Filtros avanzados en dashboard
 
-Postman
+Reportes PDF / Excel
 
-cURL
+Modo oscuro
 
-10. Cómo extender o mejorar
+Roles adicionales
 
-Agregar filtros avanzados en dashboard
+12. Licencia
 
-Implementar notificaciones push
-
-Integrar WebSockets
-
-Exportar reportes en PDF/Excel
-
-Modo oscuro en frontend
-
-Roles adicionales (Administrador Maestro)
-
-11. Licencia
-
-Uso académico – Universidad Jorge Tadeo Lozano.
+Proyecto académico — Universidad Jorge Tadeo Lozano.

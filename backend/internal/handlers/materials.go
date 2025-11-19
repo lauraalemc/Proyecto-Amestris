@@ -26,13 +26,12 @@ type materialsListResponse[T any] struct {
 func MaterialsList(w http.ResponseWriter, r *http.Request) {
 	var items []models.Material
 
-	// Ejemplo simple sin paginación; si ya tienes page/pageSize/total, úsalo.
+	// Ejemplo simple sin paginación
 	if err := db.Get().Order("id desc").Find(&items).Error; err != nil {
 		WriteError(w, http.StatusInternalServerError, "no se pudo listar materiales")
 		return
 	}
 
-	// Si tienes paginación real, reemplaza estos valores
 	page := 1
 	pageSize := len(items)
 	var total int64 = int64(len(items))
@@ -79,7 +78,7 @@ func MaterialsCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// --- Encolar auditoría (no bloquea la respuesta) ---
+	// --- Encolar auditoría ---
 	meta := map[string]any{
 		"name":     m.Name,
 		"quantity": m.Quantity,
@@ -177,7 +176,7 @@ func MaterialsDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// --- Encolar auditoría (no bloquea la respuesta) ---
+	// --- Encolar auditoría ---
 	meta, _ := json.Marshal(map[string]any{"id": id})
 	_ = async.EnqueueAudit(r.Context(), async.AuditPayload{
 		Action:   "DELETE",

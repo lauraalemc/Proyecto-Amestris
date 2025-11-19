@@ -19,7 +19,7 @@ func Setup() {
 	Client = asynq.NewClient(asynq.RedisClientOpt{Addr: redisAddr})
 }
 
-// StartServer inicia el worker (llamado desde cmd/worker/main.go)
+// StartServer inicia el worker
 func StartServer(handler *asynq.ServeMux) {
 	redisAddr := os.Getenv("REDIS_ADDR")
 	if redisAddr == "" {

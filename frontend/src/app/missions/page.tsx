@@ -42,7 +42,7 @@ function statusLabel(s: MissionStatus | undefined): string {
   return s;
 }
 
-// 🎨 estilo del badge por estado
+// Estilo del badge por estado
 function statusBadgeStyle(status?: MissionStatus) {
   const base: any = {
     display: "inline-block",
@@ -117,7 +117,7 @@ export default function MissionsPage() {
     return false;
   }
 
-  // Carga distinta según rol (ALCHEMIST no pide /api/alchemists)
+  // Carga distinta según rol
   async function load() {
     setLoading(true);
     setLoadErr(null);
@@ -143,7 +143,7 @@ export default function MissionsPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [isSupervisor]);
 
   async function handleCreate(e: React.FormEvent) {

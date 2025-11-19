@@ -19,7 +19,7 @@ import (
 
 /* ===================== UTILIDADES ===================== */
 
-// genera token aleatorio en hex (32 bytes = 64 caracteres)
+// genera token aleatorio en hex
 func randToken(n int) (string, error) {
 	b := make([]byte, n)
 	if _, err := rand.Read(b); err != nil {
@@ -40,7 +40,7 @@ type tokensOut struct {
 	Access  string `json:"access"`
 	Refresh string `json:"refresh"`
 	JTI     string `json:"jti"`
-	Exp     int64  `json:"exp"` // unix seconds
+	Exp     int64  `json:"exp"`
 }
 
 /* ===================== EMISIÓN DE TOKENS ===================== */
@@ -52,7 +52,7 @@ func issueTokens(ctx context.Context, u models.User) (tokensOut, error) {
 		return tokensOut{}, err
 	}
 
-	// convertir exp (time.Time) a int64 (unix)
+	// convertir exp a int64
 	var expUnix int64
 	if !exp.IsZero() {
 		expUnix = exp.Unix()

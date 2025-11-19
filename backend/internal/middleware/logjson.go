@@ -40,8 +40,8 @@ func LogJSON(next http.Handler) http.Handler {
 			DurationMs: float64(time.Since(start).Milliseconds()),
 			RequestID:  FromContext(r),
 		}
-		_ = json.NewEncoder(w).Encode // no-op para importar json
-		// Escribe a stdout en JSON (simple):
+		_ = json.NewEncoder(w).Encode
+		// Escribe a stdout en JSON:
 		b, _ := json.Marshal(ent)
 		_, _ = w.Write([]byte{}) // noop (evita inline de b en respuesta)
 		println(string(b))

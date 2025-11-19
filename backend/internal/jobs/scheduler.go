@@ -1,4 +1,3 @@
-// backend/internal/jobs/scheduler.go
 package jobs
 
 import (
@@ -7,7 +6,7 @@ import (
 	"time"
 )
 
-// StartDailyJobs lanza una goroutine que ejecuta tareas diarias.
+// StartDailyJob: lanza una goroutine que ejecuta tareas diarias.
 func StartDailyJobs(ctx context.Context) {
 	go func() {
 		// Ejecuta una vez al inicio

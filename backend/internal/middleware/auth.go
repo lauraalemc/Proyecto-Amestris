@@ -1,4 +1,3 @@
-// backend/internal/middleware/auth.go
 package middleware
 
 import (
@@ -20,12 +19,8 @@ func writeJSONError(w http.ResponseWriter, status int, msg string) {
 	_ = json.NewEncoder(w).Encode(apiError{Error: msg})
 }
 
-// AuthJWT es un middleware de autenticación por JWT.
-//
-// Se usa así (con Gorilla Mux):
-//
-//	api := r.PathPrefix("/api/v1").Subrouter()
-//	api.Use(middleware.AuthJWT)
+// AuthJWT: middleware de autenticación por JWT.
+
 func AuthJWT(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authz := r.Header.Get("Authorization")
@@ -45,7 +40,7 @@ func AuthJWT(next http.Handler) http.Handler {
 			return
 		}
 
-		// Parsear y validar token (firma/exp/nbf, etc.)
+		// Parsear y validar token
 		claims, err := importjwt.ParseToken(token)
 		if err != nil {
 			writeJSONError(w, http.StatusUnauthorized, "Token inválido o expirado")

@@ -135,7 +135,7 @@ func TransmutationsList(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// ---------- CREATE (transacción con control de stock) ----------
+// ---------- CREATE ----------
 
 func TransmutationsCreate(w http.ResponseWriter, r *http.Request) {
 	var in transmutationCreateReq

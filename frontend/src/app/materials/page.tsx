@@ -22,7 +22,7 @@ function normalizeList<T>(res: any): T[] {
   return [];
 }
 
-// 🎨 Estilos según rareza
+// Estilos según rareza
 function rarityCellStyle(rarity?: string | null) {
   const base: any = {
     display: "table-cell",

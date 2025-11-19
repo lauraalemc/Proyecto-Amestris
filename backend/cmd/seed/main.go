@@ -19,10 +19,10 @@ type seedUser struct {
 	Email    string
 	Name     string
 	Role     models.UserRole
-	Password string // texto plano SOLO para el seed; se guarda como hash
+	Password string
 }
 
-// ===== Helpers de espera/reintentos =====
+// Helpers de espera
 
 func atoiDef(s string, def int) int {
 	if v, err := strconv.Atoi(s); err == nil {
@@ -32,9 +32,9 @@ func atoiDef(s string, def int) int {
 }
 
 func waitForDB() error {
-	// Configurables por env si quieres ajustar sin recompilar
-	maxWaitSec := atoiDef(os.Getenv("SEED_MAX_WAIT_SEC"), 45) // tiempo total
-	stepMs := atoiDef(os.Getenv("SEED_STEP_MS"), 500)         // backoff base
+
+	maxWaitSec := atoiDef(os.Getenv("SEED_MAX_WAIT_SEC"), 45)
+	stepMs := atoiDef(os.Getenv("SEED_STEP_MS"), 500)
 
 	deadline := time.Now().Add(time.Duration(maxWaitSec) * time.Second)
 	attempt := 0
@@ -44,14 +44,14 @@ func waitForDB() error {
 			log.Printf("✅ Conexión a PostgreSQL lista (intento %d)", attempt)
 			return nil
 		} else {
-			// Mensaje corto para no llenar logs
+
 			log.Printf("⏳ DB aún no lista (intento %d): %v", attempt, err)
 		}
 
 		if time.Now().After(deadline) {
 			return errors.New("timeout esperando a la DB")
 		}
-		// backoff exponencial suave
+
 		sleep := time.Duration(stepMs*(1<<uint(min(attempt-1, 5)))) * time.Millisecond
 		if sleep > 3*time.Second {
 			sleep = 3 * time.Second
@@ -67,7 +67,7 @@ func min(a, b int) int {
 	return b
 }
 
-// ===== Hash helper =====
+// Hash helper
 
 func hash(p string) string {
 	h, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.DefaultCost)
@@ -80,14 +80,14 @@ func hash(p string) string {
 func strptr(s string) *string { return &s }
 
 func main() {
-	// 1) Espera robusta a la DB (con reintentos)
+	// 1) Espera robusta a la DB
 	if err := waitForDB(); err != nil {
 		log.Fatalf("❌ Seed: DB no lista a tiempo: %v", err)
 	}
 	d := db.Get()
 	log.Println("🌱 Seed: iniciando…")
 
-	// 2) Migraciones defensivas (por si el backend no las corrió antes)
+	// 2) Migraciones defensivas
 	if err := d.AutoMigrate(
 		&models.User{},
 		&models.Alchemist{},

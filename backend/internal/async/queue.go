@@ -16,16 +16,16 @@ var (
 
 func init() {
 	initOnce.Do(func() {
-		// cola en memoria (suficiente para proyecto académico)
+		// cola en memoria
 		ch = make(chan []byte, 100)
-		// DLQ (dead-letter) para mensajes que fallan tras reintentos
+		// DLQ para mensajes que fallan tras reintentos
 		chDLQ = make(chan []byte, 100)
 	})
 }
 
-/* ====================== Enqueue de Auditorías (usa tipos de async/types.go) ====================== */
+/* ====================== Enqueue de Auditorías ====================== */
 
-// Encola un payload; si el contexto se cancela, retorna nil silencioso
+// Encola un payload
 func EnqueueAudit(ctx context.Context, p AuditPayload) error {
 	mu.RLock()
 	c := ch
@@ -38,17 +38,16 @@ func EnqueueAudit(ctx context.Context, p AuditPayload) error {
 	b, _ := json.Marshal(p)
 	select {
 	case c <- b:
-		// ok
+
 	case <-ctx.Done():
-		// cancelado; no consideramos error
+
 	}
 	return nil
 }
 
-/* ====================== Consumo simple (compat) ====================== */
+/* ====================== Consumo simple ====================== */
 
-// Consume mensajes; fn procesa cada uno. Devuelve canal de error si fn falla.
-// (Se mantiene por compatibilidad)
+// Consume mensajes; fn procesa cada uno.
 func Consume(fn func([]byte) error) <-chan error {
 	mu.RLock()
 	c := ch
@@ -72,22 +71,20 @@ func Consume(fn func([]byte) error) <-chan error {
 /* ====================== Reintentos + Backoff + DLQ ====================== */
 
 type RetryConfig struct {
-	MaxAttempts int           // p.ej. 5
-	BackoffBase time.Duration // p.ej. 500ms
-	BackoffMax  time.Duration // p.ej. 30s
-	Factor      float64       // p.ej. 2.0
-	SendToDLQ   bool          // true → manda a DLQ tras agotar reintentos
+	MaxAttempts int
+	BackoffBase time.Duration
+	BackoffMax  time.Duration
+	Factor      float64
+	SendToDLQ   bool
 }
 
 // ConsumeWithRetry procesa mensajes con reintentos y backoff exponencial.
-// No detiene el consumidor cuando fn falla: sigue leyendo siguientes mensajes.
-// Los errores se emiten por errCh pero el loop continúa.
 func ConsumeWithRetry(fn func([]byte) error, cfg RetryConfig) <-chan error {
 	mu.RLock()
 	c := ch
 	mu.RUnlock()
 
-	errCh := make(chan error, 100) // buffer para no bloquear
+	errCh := make(chan error, 100)
 
 	go func() {
 		for msg := range c {
@@ -100,14 +97,14 @@ func ConsumeWithRetry(fn func([]byte) error, cfg RetryConfig) <-chan error {
 				if err == nil {
 					break
 				}
-				// ¿más intentos?
+
 				if attempt >= cfg.MaxAttempts {
 					// DLQ opcional
 					if cfg.SendToDLQ {
 						select {
 						case chDLQ <- msg:
 						default:
-							// si se llena DLQ, descartamos silenciosamente
+
 						}
 					}
 					// reporta error pero no rompe el loop principal
@@ -117,13 +114,13 @@ func ConsumeWithRetry(fn func([]byte) error, cfg RetryConfig) <-chan error {
 					}
 					break
 				}
-				// dormir con backoff (capped)
+
 				sleep := backoff
 				if cfg.BackoffMax > 0 && sleep > cfg.BackoffMax {
 					sleep = cfg.BackoffMax
 				}
 				time.Sleep(sleep)
-				// próximo backoff
+
 				if cfg.Factor <= 1 {
 					cfg.Factor = 2
 				}

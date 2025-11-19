@@ -1,4 +1,3 @@
-// frontend/src/app/components/RealtimeBridge.tsx
 "use client";
 
 import { useEffect } from "react";
@@ -48,7 +47,7 @@ export default function RealtimeBridge({
       {
         onOpen: () => verbose && console.log("[SSE] conectado"),
         onClose: () => {
-          // Puedes quitar este log si solo te genera ruido:
+           
           if (verbose) console.log("[SSE] desconectado");
         },
         onError: (e) => {

@@ -27,7 +27,7 @@ export default function Navbar() {
             Transmutations
           </Link>
 
-          {/* ✅ Nueva opción Audits solo visible para SUPERVISOR */}
+          {/* Audits solo visible para SUPERVISOR */}
           {isSupervisor && (
             <Link href="/audits" className="hover:underline">
               Audits

@@ -19,13 +19,13 @@ type Claims struct {
 func secret() []byte {
 	s := os.Getenv("JWT_SECRET")
 	if s == "" {
-		// valor por defecto (solo dev). En prod, siempre por env.
+		// valor por defecto (solo dev)
 		s = "change_me_dev_secret"
 	}
 	return []byte(s)
 }
 
-// duración del token, en horas (por env: JWT_EXPIRES_HOURS, default 12h)
+// duración del token en horas
 func ttl() time.Duration {
 	h := os.Getenv("JWT_EXPIRES_HOURS")
 	if h == "" {

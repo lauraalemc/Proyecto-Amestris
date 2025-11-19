@@ -1,6 +1,6 @@
 package handlers
 
-// listResponse: respuesta estándar de listas (sin genéricos)
+// listResponse: respuesta estándar de listas
 type listResponse struct {
 	Items    interface{} `json:"items"`
 	Page     int         `json:"page"`

@@ -16,5 +16,5 @@ type AuditPayload struct {
 	Action   string          `json:"action"`
 	Entity   string          `json:"entity"`
 	EntityID uint            `json:"entityId"`
-	Meta     json.RawMessage `json:"meta"` // libre: map/string/lo que mandes
+	Meta     json.RawMessage `json:"meta"`
 }

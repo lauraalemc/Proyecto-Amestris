@@ -1,4 +1,3 @@
-// internal/handlers/auth.go
 package handlers
 
 import (
@@ -16,7 +15,7 @@ import (
 	"amestris/backend/internal/models"
 )
 
-/* ---------- Error helper local (evita choque con otros apiError) ---------- */
+/* ---------- Error helper local ---------- */
 
 type authErr struct {
 	Error  string            `json:"error"`
@@ -53,24 +52,22 @@ func toAuthUserDTO(u models.User) authUserDTO {
 
 var emailRe = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 
-/* ============================================================================
-   POST /api/auth/register   Body: {name,email,password,role}   Resp: {token,user}
-   ============================================================================ */
+/* POST /api/auth/register */
 
 type registerReq struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
-	Role     string `json:"role"` // "ALCHEMIST" | "SUPERVISOR"
+	Role     string `json:"role"`
 }
 
 type authResp struct {
-	Token   string      `json:"token"` // alias del access (compatibilidad con FE)
+	Token   string      `json:"token"`
 	User    authUserDTO `json:"user"`
-	Access  string      `json:"access"`  // nuevo
-	Refresh string      `json:"refresh"` // nuevo
-	JTI     string      `json:"jti"`     // nuevo
-	Exp     int64       `json:"exp"`     // nuevo (unix seconds)
+	Access  string      `json:"access"`
+	Refresh string      `json:"refresh"`
+	JTI     string      `json:"jti"`
+	Exp     int64       `json:"exp"`
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
@@ -132,7 +129,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// ⬇️ Ajustado a tu jwt.go
 	tok, err := issueTokens(r.Context(), u)
 	if err != nil {
 		writeJSONError(w, http.StatusInternalServerError, "no se pudo generar tokens")
@@ -140,9 +136,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated) // 201 creado
+	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(authResp{
-		Token:   tok.Access, // compat
+		Token:   tok.Access,
 		User:    toAuthUserDTO(u),
 		Access:  tok.Access,
 		Refresh: tok.Refresh,
@@ -152,9 +148,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 }
 
-/* ============================================================================
-   POST /api/auth/login   Body: {email,password}   Resp: {token,user}
-   ============================================================================ */
+/* POST /api/auth/login  */
 
 type loginReq struct {
 	Email    string `json:"email"`
@@ -184,7 +178,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	var u models.User
 	if err := db.Get().Where("email = ?", in.Email).First(&u).Error; err != nil {
-		// mismo error genérico para no filtrar si existe/no existe
+
 		writeJSONError(w, http.StatusUnauthorized, "credenciales inválidas")
 		return
 	}
@@ -194,7 +188,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// ⬇️ Ajustado a tu jwt.go
 	tok, err := issueTokens(r.Context(), u)
 	if err != nil {
 		writeJSONError(w, http.StatusInternalServerError, "no se pudo generar tokens")
@@ -203,7 +196,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(authResp{
-		Token:   tok.Access, // compat
+		Token:   tok.Access,
 		User:    toAuthUserDTO(u),
 		Access:  tok.Access,
 		Refresh: tok.Refresh,
@@ -213,9 +206,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 }
 
-/* ============================================================================
-   GET /api/auth/me    Header: Authorization: Bearer <token>   Resp: user DTO
-   ============================================================================ */
+/* GET /api/auth/me */
 
 func Me(w http.ResponseWriter, r *http.Request) {
 	authz := r.Header.Get("Authorization")
@@ -225,7 +216,6 @@ func Me(w http.ResponseWriter, r *http.Request) {
 	}
 	raw := strings.TrimSpace(authz[len("Bearer "):])
 
-	// ⬇️ Ajustado a tu jwt.go
 	claims, err := jwtutil.ParseToken(raw)
 	if err != nil {
 		writeJSONError(w, http.StatusUnauthorized, "token inválido")

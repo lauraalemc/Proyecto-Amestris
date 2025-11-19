@@ -43,7 +43,6 @@ services:
       # dentro de la red Docker el host es "db"
       DB_DSN: "host=db user=${POSTGRES_USER:-postgres} password=${POSTGRES_PASSWORD:-laura123} dbname=${POSTGRES_DB:-alchemy} port=5432 sslmode=disable TimeZone=America/Bogota"
       PORT: "8080"
-      # 👇 OJO: entre comillas, para que la interpolación sea válida
       JWT_SECRET: "${JWT_SECRET:-change_me_dev_secret}"
       JWT_EXPIRES_HOURS: "12"
       REDIS_ADDR: "redis:6379"
@@ -63,13 +62,13 @@ services:
       DB_DSN: "host=db user=${POSTGRES_USER:-postgres} password=${POSTGRES_PASSWORD:-laura123} dbname=${POSTGRES_DB:-alchemy} port=5432 sslmode=disable TimeZone=America/Bogota"
       REDIS_ADDR: "redis:6379"
 
-      # ⚙️ Config de reintentos del worker
+      # Config de reintentos del worker
       JOB_MAX_ATTEMPTS: "5"
       JOB_BACKOFF_MS: "500"
       JOB_BACKOFF_MAX_MS: "30000"
       JOB_DLQ_ENABLED: "1"
 
-      # 🕒 Verificación periódica de misiones “viejas”
+      # Verificación periódica de misiones “viejas”
       VERIFY_INTERVAL_SEC: "60"
       MISSION_STALE_DAYS: "30"
     command: ["/app/worker"]

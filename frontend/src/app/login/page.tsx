@@ -1,4 +1,3 @@
-// frontend/src/app/login/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -18,8 +17,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const { token } = await AuthAPI.login(email, password);
-      Token.set(token);                // ✅ guarda token (sessionStorage)
-      router.replace("/");             // o donde quieras
+      Token.set(token);                // Guarda token 
+      router.replace("/");             
     } catch (err: any) {
       setError(err.message || "Error al iniciar sesión");
     } finally {

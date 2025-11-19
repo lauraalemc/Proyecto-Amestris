@@ -2,8 +2,8 @@ export type Material = {
   id: number;
   name: string;
   quantity: number;
-  unit: string;        // "kg", "L", "units", etc.
-  rarity?: string;     // opcional: "common", "rare", "legendary"
+  unit: string;        
+  rarity?: string;     
   notes?: string;
 };
 
@@ -15,7 +15,7 @@ export type Transmutation = {
   quantityUsed: number;
   result?: string;
   createdAt?: string;
-  materialName?: string; // si el backend lo agrega por conveniencia
+  materialName?: string; 
   missionTitle?: string;
 };
 

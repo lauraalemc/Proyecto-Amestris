@@ -8,13 +8,10 @@ RUN apk add --no-cache git ca-certificates && update-ca-certificates
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copia TODO el backend (asegúrate que .dockerignore no tape archivos)
+# Copia TODO el backend 
 COPY . .
 
-# Compila binarios:
-# - server: el main está en la raíz del backend (./)
-# - worker: en ./cmd/worker
-# - seed:   en ./cmd/seed
+# Compila binarios
 RUN CGO_ENABLED=0 GOOS=linux go build -o server .
 RUN CGO_ENABLED=0 GOOS=linux go build -o worker ./cmd/worker
 RUN CGO_ENABLED=0 GOOS=linux go build -o seed   ./cmd/seed

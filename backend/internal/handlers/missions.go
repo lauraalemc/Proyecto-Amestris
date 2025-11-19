@@ -12,11 +12,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-/* ===== DTOs de entrada (punteros para campos opcionales) ===== */
+/* ===== DTOs de entrada ===== */
 type missionCreateReq struct {
 	Title               string  `json:"title"`
 	Description         *string `json:"description"`
-	Status              *string `json:"status"` // "OPEN", "IN_PROGRESS", "DONE"... ajusta a tu enum
+	Status              *string `json:"status"`
 	AssignedAlchemistID *uint   `json:"assignedAlchemistId"`
 }
 
@@ -35,7 +35,7 @@ func val[T any](p *T, def T) T {
 	return def
 }
 
-/* Normaliza el status string → models.MissionStatus (con default) */
+/* Normaliza el status string → models.MissionStatus */
 func parseMissionStatus(p *string, def models.MissionStatus) models.MissionStatus {
 	if p == nil {
 		return def
@@ -83,14 +83,14 @@ func CreateMission(w http.ResponseWriter, r *http.Request) {
 
 	// *string → string
 	desc := val(in.Description, "")
-	// string → models.MissionStatus (con default)
+	// string → models.MissionStatus
 	status := parseMissionStatus(in.Status, models.MissionStatus("OPEN"))
 
 	m := models.Mission{
 		Title:               title,
 		Description:         desc,
 		Status:              status,
-		AssignedAlchemistID: in.AssignedAlchemistID, // modelo acepta *uint
+		AssignedAlchemistID: in.AssignedAlchemistID,
 	}
 
 	if err := db.DB.Create(&m).Error; err != nil {

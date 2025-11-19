@@ -59,7 +59,7 @@ func mountProtected(api *mux.Router) {
 	api.HandleFunc("/transmutations/{id}", handlers.TransmutationsUpdate).Methods(http.MethodPut) // <—
 	api.HandleFunc("/transmutations/{id}", handlers.TransmutationsDelete).Methods(http.MethodDelete)
 
-	// Encolar una transmutación (demo)
+	// Encolar una transmutación
 	api.HandleFunc("/transmutations/queue", func(w http.ResponseWriter, r *http.Request) {
 		type inPayload struct {
 			Title      string  `json:"title"`

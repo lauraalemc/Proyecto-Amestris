@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 )
 
-var docsDir = "docs" // dentro del contenedor es /app/docs
+var docsDir = "docs"
 
 // SwaggerUI sirve el HTML de swagger y el YAML en /docs/openapi.yaml
 func SwaggerUI(w http.ResponseWriter, r *http.Request) {

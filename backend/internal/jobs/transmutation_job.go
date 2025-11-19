@@ -1,4 +1,3 @@
-// backend/internal/jobs/transmutation_job.go
 package jobs
 
 import (
@@ -15,12 +14,8 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// Importante: TaskTransmutation y PayloadTransmutation
-// YA están definidos en jobs/types.go. Aquí solo los usamos.
-
-// HandleTransmutationTask procesa una tarea de transmutación
-// en segundo plano usando Asynq. Se asume que la tarea fue
-// encolada con el tipo TaskTransmutation y payload PayloadTransmutation.
+// HandleTransmutationTask: procesa una tarea de transmutación
+// en segundo plano usando Asynq
 func HandleTransmutationTask(ctx context.Context, t *asynq.Task) error {
 	var p PayloadTransmutation
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {

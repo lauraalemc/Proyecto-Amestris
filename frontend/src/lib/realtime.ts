@@ -1,4 +1,3 @@
-// frontend/src/lib/realtime.ts
 type RealtimeHandlers = {
   onEvent: (type: string, data: any) => void;
   onOpen?: () => void;
@@ -42,7 +41,7 @@ export function connectRealtime(
       console.warn("[SSE] onerror", e);
     }
     onError?.(e);
-    // EventSource vuelve a intentar automáticamente
+    // EventSource intenta automáticamente
   };
 
   es.onmessage = (ev) => {
@@ -82,7 +81,7 @@ export function connectRealtime(
       (es as any).removeEventListener("transmutation.created", createdHandler);
       (es as any).removeEventListener("transmutation.deleted", deletedHandler);
     } catch {
-      /* ignore */
+      
     }
     es.close();
     onClose?.();

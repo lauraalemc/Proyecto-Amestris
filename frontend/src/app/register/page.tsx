@@ -29,7 +29,7 @@ export default function RegisterPage() {
       await AuthAPI.register(name.trim(), email.trim(), password, role);
       success("Usuario registrado. Iniciando sesión…");
 
-      // Tras registrar, iniciamos sesión con las mismas credenciales
+      // Tras registrar, se inicia sesión con las mismas credenciales
       await login(email.trim(), password);
       router.replace("/");
     } catch (err: any) {

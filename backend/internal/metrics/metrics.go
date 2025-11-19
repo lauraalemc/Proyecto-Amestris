@@ -9,13 +9,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-/*
-HTTP core metrics + hooks opcionales para SSE y Workers.
-- /api/metrics → promhttp.Handler()
-- Instrument(next) → middleware que mide conteo, latencia y requests en vuelo
-- Hooks opcionales (SSEClientInc/Dec, SSEEvent, JobProcessed) para instrumentar si quieres
-*/
-
 var (
 	inFlight = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "http_in_flight_requests",
@@ -77,7 +70,7 @@ func Instrument(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		method := r.Method
-		path := r.URL.Path // si usas mux, puedes normalizar la ruta aquí si quieres
+		path := r.URL.Path
 
 		inFlight.Inc()
 		defer inFlight.Dec()
@@ -101,9 +94,7 @@ func (w *statusWriter) WriteHeader(code int) {
 	w.ResponseWriter.WriteHeader(code)
 }
 
-/* =========================
-   Hooks opcionales (SSE/Worker)
-   ========================= */
+/* Hooks opcionales */
 
 // Marca +1 cliente SSE (llamar en AddClient)
 func SSEClientInc() { sseClients.Inc() }

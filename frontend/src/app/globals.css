@@ -40,7 +40,7 @@ body {
 .userbox { color: #555; font-size: 14px; }
 .userbox strong, 
 .userbox span {
-  margin-right: 8px; /* <-- separa el texto del botón */
+  margin-right: 8px; 
 }
 .btn {
   appearance: none; border: 1px solid #111; color: #111; background: #fff;
@@ -126,7 +126,7 @@ body {
   font-size: 0.75rem;
 }
 
-/* Gráfico de barras muy simple */
+/* Gráfico de barras */
 .chart {
   margin-top: 0.5rem;
   display: flex;

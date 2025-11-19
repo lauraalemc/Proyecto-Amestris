@@ -1,7 +1,6 @@
 package handlers
 
-// ListResponse es la respuesta estándar para listas paginadas.
-// Déjala definida UNA sola vez en el paquete handlers.
+// ListResponse: respuesta estándar para listas paginadas
 type ListResponse[T any] struct {
 	Items    []T   `json:"items"`
 	Page     int   `json:"page"`

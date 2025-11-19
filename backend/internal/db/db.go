@@ -14,9 +14,9 @@ import (
 
 var DB *gorm.DB
 
-// Connect abre la conexión (usa DB_DSN o un DSN local por defecto) y migra modelos.
+// Connect abre la conexión y migra modelos.
 func Connect() error {
-	if DB != nil { // ya conectada
+	if DB != nil {
 		return nil
 	}
 
@@ -57,7 +57,7 @@ func Connect() error {
 		&models.Material{},
 		&models.Transmutation{},
 		&models.Audit{},
-		&models.RefreshToken{}, // ⬅️ AÑADIDO
+		&models.RefreshToken{},
 	); err != nil {
 		log.Printf("❌ Error en migraciones: %v\n", err)
 		return err

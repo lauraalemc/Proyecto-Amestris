@@ -29,7 +29,7 @@ type ListResponse = {
   total?: number;
 };
 
-// 🔹 Formato amigable para la fecha
+// Formato para la fecha
 function formatDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
@@ -121,7 +121,7 @@ export default function TransmutationsPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   // Crear transmutación
@@ -162,7 +162,7 @@ export default function TransmutationsPage() {
     }
   }
 
-  // Eliminar transmutación manualmente (solo habrá botón para supervisor)
+  // Eliminar transmutación manualmente (solo botón para supervisor)
   async function handleDelete(id: number) {
     if (!confirm("¿Eliminar transmutación? Esto restaurará el stock del material.")) return;
     try {

@@ -1,4 +1,3 @@
-// backend/internal/middleware/audit.go
 package middleware
 
 import (
@@ -38,14 +37,6 @@ func clientIP(r *http.Request) string {
 	return r.RemoteAddr
 }
 
-/*
-Audit registra un evento con tu esquema:
-
-- Action:  "HTTP"
-- Entity:  r.URL.Path   (ruta golpeada)
-- EntityID: 0 (si no aplica; puedes cambiarlo cuando la ruta tenga un ID claro)
-- Meta: JSON con {userId, method, status, userAgent, ip, latencyMs}
-*/
 func Audit() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -54,14 +45,14 @@ func Audit() func(http.Handler) http.Handler {
 			ww := &writerWrapper{ResponseWriter: w, status: http.StatusOK}
 			next.ServeHTTP(ww, r)
 
-			// si AuthJWT adjuntó usuario, lo tomamos
+			// si AuthJWT adjuntó usuario, se toma
 			var userID *uint
 			if u := UserFromContext(r.Context()); u != nil {
 				userID = &u.ID
 			}
 
 			meta := map[string]any{
-				"userId":    userID, // quedará null si no hay user
+				"userId":    userID, // queda null si no hay user
 				"method":    r.Method,
 				"status":    ww.status,
 				"userAgent": r.UserAgent(),
@@ -73,13 +64,10 @@ func Audit() func(http.Handler) http.Handler {
 			a := models.Audit{
 				Action:   "HTTP",
 				Entity:   r.URL.Path,
-				EntityID: 0,   // ajústalo si tu ruta maneja IDs (e.g., /missions/{id})
-				Meta:     raw, // json.RawMessage
-				// CreatedAt lo llena GORM con autoCreateTime si lo configuras; si no,
-				// puedes dejar que lo ponga la BD por defecto o añadir time.Now() aquí.
+				EntityID: 0,
+				Meta:     raw,
 			}
 
-			// best-effort en background para no bloquear la respuesta
 			go func() {
 				_ = db.Get().Create(&a).Error
 			}()

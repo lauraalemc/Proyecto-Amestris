@@ -48,7 +48,7 @@ func getBool(key string, def bool) bool {
 	return def
 }
 
-// Lee un intervalo en segundos desde env (para la verificación periódica)
+// Lee un intervalo en segundos desde env
 func getDurSec(key string, def time.Duration) time.Duration {
 	if v := os.Getenv(key); v != "" {
 		if n, err := strconv.Atoi(v); err == nil {
@@ -65,7 +65,7 @@ func main() {
 	}
 	defer db.Close()
 
-	// 2) Señal de finalización (Ctrl+C / SIGTERM)
+	// 2) Señal de finalización
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
@@ -112,10 +112,10 @@ func main() {
 		}
 	}()
 
-	// 6) Tarea periódica: verificación de inventario y misiones + auditoría diaria
+	// 6) Verificación de inventario y misiones, y auditoría diaria
 	startVerificationLoop(ctx)
 
-	// 7) Esperar señal o errores (sin matar el proceso por el primer error)
+	// 7) Esperar señal o errores
 	for {
 		select {
 		case <-ctx.Done():
@@ -123,29 +123,18 @@ func main() {
 			return
 		case err := <-errCh:
 			if err != nil {
-				// ya fue encolado a DLQ si corresponde; seguimos vivos
+
 				log.Printf("worker error (reportado por errCh): %v", err)
 			} else {
-				// canal cerrado → probablemente shutdown; salimos limpio
+
 				return
 			}
 		}
 	}
 }
 
-/*
-startVerificationLoop lanza una goroutine que, cada cierto intervalo,
-revisa:
-
-- Materiales con stock bajo (umbral configurable).
-- Misiones "atascadas".
-- Registra una auditoría diaria del sistema.
-
-Esto cumple el requerimiento de “tarea diaria de verificación” sin
-modificar datos de negocio.
-*/
 func startVerificationLoop(ctx context.Context) {
-	// Intervalo en segundos (por defecto 24h). Para pruebas puedes poner, p.ej. 60.
+	// Intervalo en segundos
 	interval := getDurSec("VERIFY_INTERVAL_SEC", 24*time.Hour)
 	lowStockThreshold := getInt("MATERIAL_LOW_STOCK_THRESHOLD", 5)
 	staleDays := getInt("MISSION_STALE_DAYS", 30)
@@ -174,20 +163,13 @@ func startVerificationLoop(ctx context.Context) {
 	}()
 }
 
-/*
-runDailyVerification hace las consultas a la base y ejecuta:
-
-- Auditoría diaria del sistema.
-- Búsqueda de materiales con quantity < threshold.
-- Revisión de misiones no cerradas (delegada a jobs.RunStaleMissionsCheck).
-*/
 func runDailyVerification(ctx context.Context, lowStockThreshold int, staleDays int) error {
 	d := db.Get()
 
-	// 1) Auditoría diaria (registra un evento "DAILY_CHECK" en la tabla de auditorías)
+	// 1) Auditoría diaria
 	if err := jobs.HandleDailyAudit(ctx); err != nil {
 		log.Printf("daily audit error: %v", err)
-		// no devolvemos error aquí para que igual se ejecuten las demás verificaciones
+
 	}
 
 	// 2) Materiales con stock bajo
@@ -205,7 +187,7 @@ func runDailyVerification(ctx context.Context, lowStockThreshold int, staleDays 
 		}
 	}
 
-	// 3) Misiones estancadas (usa el job dedicado)
+	// 3) Misiones estancadas
 	jobs.RunStaleMissionsCheck(staleDays)
 
 	return nil

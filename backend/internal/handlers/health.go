@@ -11,16 +11,16 @@ import (
 )
 
 type healthResp struct {
-	Status    string `json:"status"` // "ok" | "down"
-	DB        string `json:"db"`     // "ok" | "down"
+	Status    string `json:"status"`
+	DB        string `json:"db"`
 	CheckedAt string `json:"checkedAt"`
 }
 
-func Healthz(w http.ResponseWriter, r *http.Request) { // liveness: NO tumba por DB caída
+func Healthz(w http.ResponseWriter, r *http.Request) {
 	writeHealth(w, r, false)
 }
 
-func Readyz(w http.ResponseWriter, r *http.Request) { // readiness: exige DB ok
+func Readyz(w http.ResponseWriter, r *http.Request) {
 	writeHealth(w, r, true)
 }
 
@@ -54,7 +54,7 @@ func pingDB(ctx context.Context) string {
 	}
 	// Usa PingContext con timeout
 	if err := sqlDB.PingContext(ctx); err != nil {
-		// Si el driver no implementa PingContext correctamente, intenta Ping normal
+
 		if err2 := sqlDB.Ping(); err2 != nil {
 			return "down"
 		}

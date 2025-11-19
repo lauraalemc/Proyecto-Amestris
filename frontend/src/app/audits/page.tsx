@@ -149,7 +149,7 @@ export default function AuditsPage() {
                           whiteSpace: "pre-wrap",
                         }}
                       >
-{JSON.stringify(a.meta, null, 2)}
+                      {JSON.stringify(a.meta, null, 2)}
                       </pre>
                     </details>
                   </td>

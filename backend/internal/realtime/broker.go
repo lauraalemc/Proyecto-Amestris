@@ -12,7 +12,7 @@ import (
 )
 
 type Event struct {
-	Type string      `json:"type"` // e.g. "transmutation.created"
+	Type string      `json:"type"`
 	Data interface{} `json:"data"`
 }
 
@@ -57,7 +57,7 @@ func (b *Broker) RemoveClient(id int) {
 }
 
 func (b *Broker) Broadcast(ev Event) {
-	// Métrica: contamos el evento por tipo (una vez por broadcast)
+	// Métrica: contamos el evento por tipo
 	metrics.SSEEvent(ev.Type)
 
 	b.mu.RLock()

@@ -1,4 +1,3 @@
-// frontend/src/app/alchemists/page.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -102,7 +101,7 @@ export default function AlchemistsPage() {
   }
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   async function handleCreate(e: React.FormEvent) {
@@ -208,7 +207,7 @@ export default function AlchemistsPage() {
               )}
             </div>
 
-            {/* Rango + Especialidad en 2 columnas (en pantallas grandes) */}
+            {/* Rango + Especialidad en 2 columnas */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
@@ -354,7 +353,7 @@ export default function AlchemistsPage() {
                           #{a.id}
                         </td>
 
-                        {/* Nombre (editable) */}
+                        {/* Nombre */}
                         <td
                           style={{
                             border: "1px solid #ddd",
@@ -370,7 +369,7 @@ export default function AlchemistsPage() {
                           />
                         </td>
 
-                        {/* Rango (editable) */}
+                        {/* Rango */}
                         <td
                           style={{
                             border: "1px solid #ddd",
@@ -395,7 +394,7 @@ export default function AlchemistsPage() {
                           </select>
                         </td>
 
-                        {/* Especialidad (editable) */}
+                        {/* Especialidad */}
                         <td
                           style={{
                             border: "1px solid #ddd",

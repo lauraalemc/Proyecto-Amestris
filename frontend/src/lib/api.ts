@@ -1,19 +1,15 @@
-// frontend/src/lib/api.ts
 const BASE = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080").replace(/\/+$/, "");
 
 type ApiOptions = RequestInit & {
-  token?: string;     // si lo pasas aquí, fuerza ese token (omite el auto refresh)
-  timeoutMs?: number; // abort automático
+  token?: string;     
+  timeoutMs?: number; 
 };
 
-/** =========================================================
- *  Gestión centralizada de tokens (access / refresh / jti)
- *  - Mantiene compat con tu "token" previo en local/sessionStorage
- *  ========================================================= */
+/* Gestión centralizada de tokens */
 type StoredTokens = { access: string; refresh: string; jti: string };
 
 export const Token = {
-  /** Access token actual (compat: cae a "token" suelto si no hay "auth") */
+  /* Access token actual */
   get(): string | undefined {
     if (typeof window === "undefined") return undefined;
     const raw = localStorage.getItem("auth");
@@ -22,7 +18,7 @@ export const Token = {
         const parsed = JSON.parse(raw) as StoredTokens;
         return parsed.access;
       } catch {
-        /* ignore */
+        
       }
     }
     // Compat con código anterior
@@ -46,13 +42,13 @@ export const Token = {
     sessionStorage.setItem("token", v.access);
   },
 
-  /** 🔁 Alias retro-compatible: guarda SOLO el access token */
+  /* Alias retro-compatible: guarda SOLO el access token */
   set(value: string) {
     // Permite que código antiguo siga usando Token.set(token)
     this.setAll({ access: value, refresh: "", jti: "" });
   },
 
-  /** Borrado total + compat */
+  /* Borrado total + compat */
   clear() {
     if (typeof window === "undefined") return;
     localStorage.removeItem("auth");
@@ -132,7 +128,7 @@ export async function apiFetch<T = any>(path: string, opts: ApiOptions = {}) {
     const data = text ? safeJson(text) : null;
 
     if (!res.ok) {
-      // Si 401 y no estamos forzando un token explícito → intenta refresh una vez
+      // Si 401 → intenta refresh una vez
       if (res.status === 401 && !opts.token) {
         const refreshed = await tryRefreshOnce();
         if (refreshed) {
@@ -185,7 +181,7 @@ export const apiDelete = <T = any>(path: string, opts: ApiOptions = {}) =>
 /* ===================== Módulos API ===================== */
 
 export const AuthAPI = {
-  // Trae { token, user } (compat) y si el backend ya envía {access,refresh,jti}, también los recibimos
+  // Trae { token, user } (compat); si backend ya envía {access,refresh,jti}, también se reciben
   login: (email: string, password: string) =>
     apiPost<{ token: string; access?: string; refresh?: string; jti?: string; user: any }>(
       "/api/auth/login",
@@ -250,7 +246,7 @@ export const MissionsAPI = {
     description?: string | null;
   }) => apiPost<any>("/api/missions", payload),
 
-  // ✅ nuevo: eliminar misión
+  // Eliminar misión
   del: (id: number) => apiDelete<void>(`/api/missions/${id}`),
 };
 

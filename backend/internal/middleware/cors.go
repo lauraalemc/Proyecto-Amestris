@@ -2,7 +2,7 @@ package middleware
 
 import "net/http"
 
-// Lista blanca de orígenes permitidos (puedes ajustar según tu entorno)
+// Lista blanca de orígenes permitidos
 var allowedOrigins = map[string]bool{
 	"http://localhost:3000": true,
 	"http://127.0.0.1:3000": true,
@@ -10,7 +10,7 @@ var allowedOrigins = map[string]bool{
 	"http://127.0.0.1:3001": true,
 }
 
-// Middleware principal de CORS (se aplica a rutas normales: GET, POST, etc.)
+// Middleware principal de CORS
 func CORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
@@ -18,7 +18,7 @@ func CORS(next http.Handler) http.Handler {
 		if allowedOrigins[origin] {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 		} else if origin == "" {
-			// Si no hay Origin (por ejemplo, curl local), se permite todo
+			// Si no hay Origin, se permite todo
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 		}
 
@@ -27,7 +27,7 @@ func CORS(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 
-		// Si es un preflight, responder directamente (esto evita errores en peticiones simples)
+		// Si es un preflight, responder directamente
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return
@@ -37,7 +37,7 @@ func CORS(next http.Handler) http.Handler {
 	})
 }
 
-// Handler global para preflight (se usa para rutas OPTIONS sin match explícito)
+// Handler global para preflight
 func Preflight(w http.ResponseWriter, r *http.Request) {
 	origin := r.Header.Get("Origin")
 

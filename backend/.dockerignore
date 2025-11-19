@@ -1,4 +1,3 @@
-# NO ignores código. Solo basura/artefactos.
 .git
 **/.DS_Store
 bin/

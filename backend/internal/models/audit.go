@@ -7,9 +7,9 @@ import (
 
 type Audit struct {
 	ID        uint            `gorm:"primaryKey" json:"id"`
-	Action    string          `json:"action"`   // p.ej. "CREATE", "DELETE", "QUEUE_PUSH"
-	Entity    string          `json:"entity"`   // p.ej. "material", "mission", "transmutation"
-	EntityID  uint            `json:"entityId"` // id afectado (0 si no aplica)
+	Action    string          `json:"action"`
+	Entity    string          `json:"entity"`
+	EntityID  uint            `json:"entityId"`
 	Meta      json.RawMessage `gorm:"type:jsonb" json:"meta"`
 	CreatedAt time.Time       `json:"createdAt"`
 }

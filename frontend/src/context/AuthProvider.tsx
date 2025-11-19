@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
-  // ✅ Carga inicial: rehidrata (auth.access || token suelto) y valida /me
+  // Carga inicial: rehidrata (auth.access || token suelto) y valida /me
   useEffect(() => {
     const access =
       (() => {
@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setReady(true));
   }, []);
 
-  // ✅ Login
+  // Login
   async function login(email: string, password: string) {
     const res = await apiFetch<{ token: string; user: User; access?: string; refresh?: string; jti?: string }>(
       "/api/auth/login",
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(res.user);
   }
 
-  // ✅ Registro
+  // Registro
   async function register(name: string, email: string, password: string, role: string) {
     const res = await apiFetch<{ token: string; user: User; access?: string; refresh?: string; jti?: string }>(
       "/api/auth/register",
@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(res.user);
   }
 
-  // ✅ Logout (intenta revocar refresh si existe)
+  // Logout (intenta revocar refresh si existe)
   function logout() {
     try {
       const raw = localStorage.getItem("auth");

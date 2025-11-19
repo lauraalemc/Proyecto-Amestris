@@ -10,7 +10,6 @@ import (
 	"amestris/backend/internal/models"
 )
 
-// jsonOrNil convierte cualquier valor en json.RawMessage, devolviendo nil si no aplica.
 func jsonOrNil(v any) json.RawMessage {
 	if v == nil {
 		return nil
@@ -23,7 +22,7 @@ func jsonOrNil(v any) json.RawMessage {
 	return json.RawMessage(b)
 }
 
-// HandleAuditMessage guarda un registro de auditoría a partir del payload recibido de la cola.
+// Guarda un registro de auditoría a partir del payload recibido de la cola.
 func HandleAuditMessage(ctx context.Context, payload async.AuditPayload) error {
 	meta := jsonOrNil(payload.Meta)
 
@@ -42,7 +41,7 @@ func HandleAuditMessage(ctx context.Context, payload async.AuditPayload) error {
 	return nil
 }
 
-// HandleDailyAudit crea un registro de auditoría diario (tarea programada).
+// Crea un registro de auditoría diario (tarea programada).
 func HandleDailyAudit(ctx context.Context) error {
 	metaObj := map[string]any{
 		"kind": "daily_check",

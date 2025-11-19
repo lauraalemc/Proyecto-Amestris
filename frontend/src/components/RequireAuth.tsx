@@ -5,7 +5,7 @@ import { useEffect } from "react";
 
 type Props = {
   children: React.ReactNode;
-  roles?: string[]; // p.ej. ["SUPERVISOR"] o ["ALCHEMIST","SUPERVISOR"]
+  roles?: string[]; 
 };
 
 export default function RequireAuth({ children, roles }: Props) {
@@ -15,12 +15,12 @@ export default function RequireAuth({ children, roles }: Props) {
   useEffect(() => {
     if (!ready) return;
     if (!user) {
-      router.replace("/"); // login
+      router.replace("/"); 
       return;
     }
     if (roles && roles.length > 0) {
       const ok = roles.map((r) => r.toUpperCase()).includes(user.role.toUpperCase());
-      if (!ok) router.replace("/"); // sin permiso
+      if (!ok) router.replace("/"); 
     }
   }, [ready, user, roles, router]);
 
